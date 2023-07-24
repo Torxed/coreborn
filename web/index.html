@@ -1,0 +1,353 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Coreborn Community Resource Map</title>
+		<style type="text/css" media="screen">
+			html, body {
+				height: 100%;
+			}
+			body {
+				display: flex;
+				background-color: #181e25;
+				padding:0px;
+				margin:0px;
+			}
+			canvas {
+			}
+			.row {
+				display: flex;
+				flex-direction: row;
+			}
+			.column {
+				display: flex;
+				flex-direction: column;
+			}
+			.align-center {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			.menu {
+				color: #FFFFFF;
+				overflow-y: auto;
+				min-width: 15rem;
+			}
+			.menu-entry {
+
+			}
+			.filter-checkbox {
+				padding-left: 0.5rem;
+				padding-right: 0.5rem;
+				cursor: pointer;
+			}
+			.filter-lable {
+				font-size: 2rem;
+				padding: 1rem;
+				flex-grow: 1;
+				text-transform: capitalize; 
+			}
+			.filter-add-new-dot {
+				background-color: #7BB950;
+				font-size: 2rem;
+				font-weight: bold;
+				padding: 1rem;
+				cursor: pointer;
+			}
+			.container {
+				position: relative;
+				flex-grow: 1;
+				overflow: hidden;
+			}
+			.header {
+				font-size: 2rem;
+				background-color: #C2C2C2;
+				text-transform: capitalize;
+				padding-left: 0.5rem;
+			}
+			.footer {
+				font-size: 1rem;
+				margin-top: auto;
+				cursor: pointer;
+				padding-bottom: 1rem;
+			}
+			input[type=checkbox] {
+				cursor: pointer;
+			}
+		</style>
+		<script type="text/javascript" charset="utf-8">
+			let canvas = null;
+			let ctx = null;
+			let map_image = null;
+			let map_width = null;
+			let map_height = null;
+			let map_scale = 1.0;
+			let length_of_diagonal = null;
+			let cursor_pos = {x: 0, y: 0};
+			let current_add = null;
+			let current_category = null;
+
+			let resources = {}
+
+			let debug = [];
+
+			function load_map_image() {
+				map_image = this;
+				render()
+			}
+
+			function load_resources() {
+				fetch('https://coreborn.app/api/resources/*', {
+					method: 'GET',
+					headers: {
+						'Accept': 'application/json',
+					},
+				})
+				.then(response => response.json())
+				.then((data) => {
+					//console.log(data)
+					resources = data
+					load_filters()
+					render()
+				})
+			}
+
+			function resizeImage(img, width, height) {
+				return new Promise((resolve, reject) => {
+					const resized_image = document.createElement('canvas')
+					const resize_context = resized_image.getContext("2d")
+
+					const ratio = img.width / img.height
+
+					if (width < img.width || height < img.height) {
+						if(width / img.width >= height / img.height) {
+							resized_image.height = height
+							resized_image.width = resized_image.height * ratio
+						} else {
+							resized_image.width = width
+							resized_image.height = resized_image.width / ratio
+						}
+					} else {
+						if(width / img.width <= height / img.height) {
+							resized_image.width = width
+							resized_image.height = resized_image.width / ratio
+						} else {
+							resized_image.height = height
+							resized_image.width = ratio * resized_image.height
+						}
+					}
+
+					const p_width = Math.min(width, img.width) / Math.max(width, img.width)
+					const p_height = Math.min(height, img.height) / Math.max(height, img.height)
+
+					// https://stackoverflow.com/questions/3862096/2d-coordinate-normalization
+					length_of_diagonal = Math.sqrt((resized_image.width) * (resized_image.width) + (resized_image.height) * (resized_image.height))
+
+					if (p_width > p_height) {
+						map_scale = p_height * ratio
+					} else {
+						map_scale = p_width * ratio
+					}
+
+					resize_context.drawImage(img, 0, 0, resized_image.width, resized_image.height)
+					//console.log(`Map scale is: ${map_scale}`)
+
+					resolve({'img' : resized_image, 'width' : resized_image.width, 'height' : resized_image.height})
+				})
+			}
+
+			function render(area = null) {
+				if(map_image) {
+					resizeImage(map_image, map_width, map_height)
+					.then((blob) => {
+						ctx.clearRect(0, 0, map_width, map_height);
+						ctx.filter = "grayscale(80%)";
+						ctx.drawImage(blob['img'], 0, 0, blob['width'], blob['height'], 0, 0, blob['width'], blob['height'])
+						ctx.filter = "grayscale(0%)";
+					})
+					.then(() => {
+						debug.forEach((pos) => {
+							let x = pos[0] * length_of_diagonal
+							let y = pos[1] * length_of_diagonal
+
+							ctx.fillStyle = "#FFABD0";
+							ctx.beginPath();
+							ctx.arc(x, y, 5, 0, 2 * Math.PI);
+							ctx.fill();
+						})
+
+						Object.keys(resources).forEach((category) => {
+							Object.keys(resources[category]).forEach((resource) => {
+								if (resources[category][resource]['visible']) {
+									resources[category][resource]['positions']?.forEach((pos) => {
+										let x = pos.x * length_of_diagonal
+										let y = pos.y * length_of_diagonal
+
+										ctx.fillStyle = resources[category][resource]['color'];
+										ctx.beginPath();
+										ctx.arc(x, y, 5, 0, 2 * Math.PI);
+										ctx.strokeStyle = '#000000';
+										ctx.lineWidth = 2;
+										ctx.stroke();
+										ctx.fill();
+									})
+								}
+							})
+						})
+					})
+					.then(() => {
+						if(current_add) {
+							normalized_X = cursor_pos.x / length_of_diagonal
+							normalized_Y = cursor_pos.y / length_of_diagonal
+
+							let x = cursor_pos.x * length_of_diagonal
+							let y = cursor_pos.y * length_of_diagonal
+
+							ctx.fillStyle = resources[current_category][current_add]['color'];
+							ctx.beginPath();
+							ctx.arc(x, y, 5, 0, 2 * Math.PI);
+							ctx.strokeStyle = '#000000';
+							ctx.lineWidth = 2;
+							ctx.stroke();
+							ctx.fill();
+						}
+					})
+				}
+			}
+
+			window.onresize = (event) => {
+				canvas.width = document.querySelector('.container').scrollWidth - document.querySelector('.menu').scrollWidth
+				canvas.height = document.querySelector('.container').scrollHeight
+
+				map_width = canvas.width
+				map_height = canvas.height
+
+				render()
+			}
+
+			window.onload = () => {
+				canvas = document.querySelector('.map')
+				canvas.width = document.querySelector('.container').scrollWidth - document.querySelector('.menu').scrollWidth
+				canvas.height = document.querySelector('.container').scrollHeight
+
+				map_width = canvas.width
+				map_height = canvas.height
+
+				ctx = canvas.getContext('2d')
+
+				const image = new Image()
+				image.onload = load_map_image
+				image.src = "./map.png";
+
+				canvas.addEventListener('click', (event) => {
+					if(current_add) {
+						const click = {
+							x: event.layerX,
+							y: event.layerY
+						}
+
+						normalized_X = click.x / length_of_diagonal
+						normalized_Y = click.y / length_of_diagonal
+
+						// #FFABD0
+						//dots.push([click.x, click.y])
+						fetch(`https://coreborn.app/api/resources/${current_add}`, {
+							method: 'PUT',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify({"x": normalized_X, "y": normalized_Y})
+						})
+						debug.push([normalized_X, normalized_Y])
+						// console.log(JSON.stringify(debug))
+						load_resources()
+					}
+				})
+
+				canvas.addEventListener('mousemove', (event) => {
+					cursor_pos = {
+						x: event.layerX / length_of_diagonal,
+						y: event.layerY / length_of_diagonal
+					}
+
+					if(map_image && current_add)
+						render({x: cursor_pos.x - 50, y: cursor_pos.y - 50, width: 100, height: 100});
+				})
+
+				load_resources()
+			}
+
+			function load_filters() {
+				let menu = document.querySelector('.menu');
+				menu.innerHTML = '';
+
+				Object.keys(resources).forEach((category) => {
+					let header = document.createElement('div')
+					header.classList = 'menu-entry row header'
+					header.innerText = category
+					menu.appendChild(header)
+
+					Object.keys(resources[category]).forEach((resource) => {
+						const menu_entry = document.createElement('div')
+						menu_entry.classList = 'menu-entry row'
+
+						const filter_checkbox = document.createElement('div')
+						filter_checkbox.classList = 'filter-checkbox align-center'
+						filter_checkbox.style.backgroundColor = resources[category][resource]['color']
+
+						const filter_lable = document.createElement('div')
+						filter_lable.classList = 'filter-lable align-center'
+
+						const add_new_dot = document.createElement('div')
+						add_new_dot.classList = 'filter-add-new-dot align-center'
+
+						const checkbox = document.createElement('input')
+						checkbox.type = 'checkbox'
+						checkbox.checked = true
+
+						filter_lable.innerText = resource
+
+						add_new_dot.innerText = '+'
+
+						filter_checkbox.appendChild(checkbox)
+						menu_entry.appendChild(filter_checkbox)
+						menu_entry.appendChild(filter_lable)
+						menu_entry.appendChild(add_new_dot)
+
+						add_new_dot.addEventListener('click', () => {
+							current_add = resource
+							current_category = category
+						})
+						filter_checkbox.addEventListener('click', (event) => {
+							if(event.srcElement == filter_checkbox) {
+								checkbox.checked = checkbox.checked ? false : true
+							}
+							resources[category][resource]['visible'] = checkbox.checked
+							render()
+						})
+
+						menu.appendChild(menu_entry)
+					})
+				})
+
+				let footer = document.createElement('div')
+				footer.classList = 'menu-entry row footer align-center'
+				footer.innerText = 'https://coreborn.gg/ (Official Website)'
+
+				footer.addEventListener('click', () => {
+					window.open('https://coreborn.gg/', '_blank').focus();
+				})
+
+				menu.appendChild(footer)
+			}
+		</script>
+	</head>
+	<body>
+		<div class="menu column">
+			
+		</div>
+		<div class="container">
+			<canvas width="10" height="10" class="map"></canvas>
+		</div>
+	</body>
+</html>
