@@ -91,6 +91,9 @@
 			let cursor_pos = {x: 0, y: 0};
 			let current_add = null;
 			let current_category = null;
+			let mouse_motion_render = null;
+			let mouse_position_history = [];
+			const dot_radius = 5;
 
 			let resources = {}
 
@@ -162,12 +165,29 @@
 			}
 
 			function render(area = null) {
+				if (area !== null) {
+					if (area.x < 0)
+						area.x = 0
+					if (area.y < 0)
+						area.y = 0
+				}
+				// {x: cursor_pos.x - 50, y: cursor_pos.y - 50, width: 100, height: 100})
 				if(map_image) {
 					resizeImage(map_image, map_width, map_height)
 					.then((blob) => {
-						ctx.clearRect(0, 0, map_width, map_height);
+						ctx.clearRect(area?.x ? area.x : 0, area?.y ? area.y : 0, area?.width ? area.width : map_width, area?.height ? area.height : map_height);
 						ctx.filter = "grayscale(80%)";
-						ctx.drawImage(blob['img'], 0, 0, blob['width'], blob['height'], 0, 0, blob['width'], blob['height'])
+						ctx.drawImage(
+							blob['img'],
+							area?.x ? area.x : 0,
+							area?.y ? area.y : 0,
+							area?.width ? area.width : blob['width'],
+							area?.height ? area.height : blob['height'],
+							area?.x ? area.x : 0,
+							area?.y ? area.y : 0,
+							area?.width ? area.width : blob['width'],
+							area?.height ? area.height : blob['height'],
+						)
 						ctx.filter = "grayscale(0%)";
 					})
 					.then(() => {
@@ -177,26 +197,35 @@
 
 							ctx.fillStyle = "#FFABD0";
 							ctx.beginPath();
-							ctx.arc(x, y, 5, 0, 2 * Math.PI);
+							ctx.arc(x, y, dot_radius, 0, 2 * Math.PI);
 							ctx.fill();
 						})
 
 						Object.keys(resources).forEach((category) => {
 							Object.keys(resources[category]).forEach((resource) => {
 								if (resources[category][resource]['visible']) {
+									let dots_in_area = false;
+
 									ctx.beginPath();
 									ctx.fillStyle = resources[category][resource]['color'];
 									ctx.strokeStyle = '#000000';
 									ctx.lineWidth = 2;
+
 									resources[category][resource]['positions']?.forEach((pos) => {
 										let x = pos.x * length_of_diagonal
 										let y = pos.y * length_of_diagonal
 
-										ctx.moveTo(x, y);
-										ctx.arc(x, y, 5, 0, 2 * Math.PI);
+										if(area === null || (x + dot_radius >= area.x && x - dot_radius <= area.x + area.width && y + dot_radius >= area.y && y - dot_radius <= area.y + area.height)) {
+											ctx.moveTo(x, y);
+											ctx.arc(x, y, dot_radius, 0, 2 * Math.PI);
+											dots_in_area = true;
+										}
 									})
-									ctx.stroke();
-									ctx.fill();
+
+									if(dots_in_area) {
+										ctx.stroke();
+										ctx.fill();
+									}
 								}
 							})
 						})
@@ -209,11 +238,11 @@
 							let x = cursor_pos.x * length_of_diagonal
 							let y = cursor_pos.y * length_of_diagonal
 
-							ctx.fillStyle = resources[current_category][current_add]['color'];
 							ctx.beginPath();
-							ctx.arc(x, y, 5, 0, 2 * Math.PI);
+							ctx.fillStyle = resources[current_category][current_add]['color'];
 							ctx.strokeStyle = '#000000';
 							ctx.lineWidth = 2;
+							ctx.arc(x, y, dot_radius, 0, 2 * Math.PI);
 							ctx.stroke();
 							ctx.fill();
 						}
@@ -276,8 +305,23 @@
 						y: event.layerY / length_of_diagonal
 					}
 
-					if(map_image && current_add)
-						render({x: cursor_pos.x - 50, y: cursor_pos.y - 50, width: 100, height: 100});
+					if(map_image && current_add) {
+						if(mouse_motion_render)
+							clearTimeout(mouse_motion_render)
+
+						mouse_motion_render = setTimeout(() => {
+							mouse_position_history.forEach((cord, index) => {
+								render({
+									x: (cord.x * length_of_diagonal) - (dot_radius+2),
+									y: (cord.y * length_of_diagonal) - (dot_radius+2),
+									width: (dot_radius+2)*2,
+									height: (dot_radius+2)*2
+								});
+								mouse_position_history.splice(index, 1)
+							})
+							mouse_position_history.push({'x': cursor_pos.x, 'y': cursor_pos.y});
+						}, 1)
+					}
 				})
 
 				load_resources()
