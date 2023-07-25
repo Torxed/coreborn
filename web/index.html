@@ -41,7 +41,7 @@
 				padding-right: 0.5rem;
 				cursor: pointer;
 			}
-			.filter-lable {
+			.filter-label {
 				font-size: 2rem;
 				padding: 1rem;
 				flex-grow: 1;
@@ -63,7 +63,6 @@
 				font-size: 2rem;
 				background-color: #C2C2C2;
 				text-transform: capitalize;
-				padding-left: 0.5rem;
 			}
 			.footer-start {
 				font-size: 1rem;
@@ -81,6 +80,7 @@
 			}
 		</style>
 		<script type="text/javascript" charset="utf-8">
+			let config = {};
 			let canvas = null;
 			let ctx = null;
 			let map_image = null;
@@ -104,8 +104,24 @@
 				render()
 			}
 
+			function load_config() {
+				return new Promise((resolve, reject) => {
+					fetch('/config.json', {
+						method: 'GET',
+						headers: {
+							'Accept': 'application/json',
+						},
+					})
+					.then(response => response.json())
+					.then((data) => {
+						config = data
+						resolve()
+					})
+				})
+			}
+
 			function load_resources() {
-				fetch('https://coreborn.app/api/resources/*', {
+				fetch(`https://${config.api.host}${config.api.prefix}/resources/*`, {
 					method: 'GET',
 					headers: {
 						'Accept': 'application/json',
@@ -203,7 +219,7 @@
 
 						Object.keys(resources).forEach((category) => {
 							Object.keys(resources[category]).forEach((resource) => {
-								if (resources[category][resource]['visible']) {
+								if (config.resources[resource].visible) {
 									let dots_in_area = false;
 
 									ctx.beginPath();
@@ -272,21 +288,26 @@
 
 				const image = new Image()
 				image.onload = load_map_image
-				image.src = "./map.png";
+				image.src = "/map.png";
 
 				canvas.addEventListener('click', (event) => {
-					if(current_add) {
-						const click = {
-							x: event.layerX,
-							y: event.layerY
-						}
+					const click = {
+						x: event.layerX,
+						y: event.layerY
+					}
 
-						normalized_X = click.x / length_of_diagonal
-						normalized_Y = click.y / length_of_diagonal
-
+					normalized_X = click.x / length_of_diagonal
+					normalized_Y = click.y / length_of_diagonal
+					if(
+						current_add
+						&& normalized_X >= 0.030541382493515543
+						&& normalized_X <= 0.7774170089258502
+						&& normalized_Y >= 0.0749652115749927
+						&& normalized_Y <= 0.5101799121075892
+					) {
 						// #FFABD0
 						//dots.push([click.x, click.y])
-						fetch(`https://coreborn.app/api/resources/${current_add}`, {
+						fetch(`https://${config.api.host}${config.api.prefix}/resources/${current_add}`, {
 							method: 'PUT',
 							headers: {
 								'Content-Type': 'application/json'
@@ -324,7 +345,21 @@
 					}
 				})
 
-				load_resources()
+				load_config()
+				.then(() => {
+					load_resources()
+				})
+			}
+
+			function checkbox_category(div, value) {
+				div.querySelectorAll('input[type=checkbox]')?.forEach((input) => {
+					if(input.hasAttribute('resource')) {
+						const resource = input.getAttribute('resource');
+
+						config.resources[resource].visible = value
+						input.checked = value
+					}
+				})
 			}
 
 			function load_filters() {
@@ -332,10 +367,37 @@
 				menu.innerHTML = '';
 
 				Object.keys(resources).forEach((category) => {
+					let category_div = document.createElement('div')
+					category_div.classList = 'category'
+
 					let header = document.createElement('div')
 					header.classList = 'menu-entry row header'
-					header.innerText = category
-					menu.appendChild(header)
+
+					const filter_category = document.createElement('div')
+					filter_category.classList = 'filter-checkbox align-center'
+
+					const category_checkbox = document.createElement('input')
+					category_checkbox.type = 'checkbox'
+					category_checkbox.classList = 'category-checkbox'
+					category_checkbox.checked = true
+
+					const category_label = document.createElement('div')
+					category_label.classList = 'filter-label'
+					category_label.innerText = category
+
+					filter_category.appendChild(category_checkbox)
+					header.appendChild(filter_category)
+					header.appendChild(category_label);
+
+					filter_category.addEventListener('click', (event) => {
+						if(event.srcElement == filter_category) {
+							category_checkbox.checked = category_checkbox.checked ? false : true
+						}
+						checkbox_category(category_div, category_checkbox.checked)
+						render()
+					})
+
+					category_div.appendChild(header)
 
 					Object.keys(resources[category]).forEach((resource) => {
 						const menu_entry = document.createElement('div')
@@ -345,23 +407,24 @@
 						filter_checkbox.classList = 'filter-checkbox align-center'
 						filter_checkbox.style.backgroundColor = resources[category][resource]['color']
 
-						const filter_lable = document.createElement('div')
-						filter_lable.classList = 'filter-lable align-center'
+						const filter_label = document.createElement('div')
+						filter_label.classList = 'filter-label align-center'
 
 						const add_new_dot = document.createElement('div')
 						add_new_dot.classList = 'filter-add-new-dot align-center'
 
 						const checkbox = document.createElement('input')
 						checkbox.type = 'checkbox'
-						checkbox.checked = true
+						checkbox.checked = config.resources[resource].visible
+						checkbox.setAttribute('resource', resource)
 
-						filter_lable.innerText = resource
+						filter_label.innerText = resource
 
 						add_new_dot.innerText = '+'
 
 						filter_checkbox.appendChild(checkbox)
 						menu_entry.appendChild(filter_checkbox)
-						menu_entry.appendChild(filter_lable)
+						menu_entry.appendChild(filter_label)
 						menu_entry.appendChild(add_new_dot)
 
 						add_new_dot.addEventListener('click', () => {
@@ -372,12 +435,14 @@
 							if(event.srcElement == filter_checkbox) {
 								checkbox.checked = checkbox.checked ? false : true
 							}
-							resources[category][resource]['visible'] = checkbox.checked
+							config.resources[resource].visible = checkbox.checked
 							render()
 						})
 
-						menu.appendChild(menu_entry)
+						category_div.appendChild(menu_entry)
 					})
+
+					menu.appendChild(category_div)
 				})
 
 

@@ -1,0 +1,38 @@
+{
+	"api" : {
+		"host" : "beta.coreborn.app",
+		"prefix" : "/api"
+	},
+	"resources" : {
+		"gold" : {
+			"visible" : true
+		},
+		"ambrosite" : {
+			"visible" : true
+		},
+		"royalite" : {
+			"visible" : true
+		},
+		"sulfur" : {
+			"visible" : true
+		},
+		"iron" : {
+			"visible" : true
+		},
+		"coal" : {
+			"visible" : true
+		},
+		"heartwood" : {
+			"visible" : true
+		},
+		"blushbell" : {
+			"visible" : true
+		},
+		"ellyonwood" : {
+			"visible" : true
+		},
+		"dornwood" : {
+			"visible" : true
+		}
+	}
+}
