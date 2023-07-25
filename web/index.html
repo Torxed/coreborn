@@ -65,9 +65,14 @@
 				text-transform: capitalize;
 				padding-left: 0.5rem;
 			}
-			.footer {
+			.footer-start {
 				font-size: 1rem;
 				margin-top: auto;
+				cursor: pointer;
+				padding-bottom: 1rem;
+			}
+			.footer-end {
+				font-size: 1rem;
 				cursor: pointer;
 				padding-bottom: 1rem;
 			}
@@ -179,18 +184,19 @@
 						Object.keys(resources).forEach((category) => {
 							Object.keys(resources[category]).forEach((resource) => {
 								if (resources[category][resource]['visible']) {
+									ctx.beginPath();
+									ctx.fillStyle = resources[category][resource]['color'];
+									ctx.strokeStyle = '#000000';
+									ctx.lineWidth = 2;
 									resources[category][resource]['positions']?.forEach((pos) => {
 										let x = pos.x * length_of_diagonal
 										let y = pos.y * length_of_diagonal
 
-										ctx.fillStyle = resources[category][resource]['color'];
-										ctx.beginPath();
+										ctx.moveTo(x, y);
 										ctx.arc(x, y, 5, 0, 2 * Math.PI);
-										ctx.strokeStyle = '#000000';
-										ctx.lineWidth = 2;
-										ctx.stroke();
-										ctx.fill();
 									})
+									ctx.stroke();
+									ctx.fill();
 								}
 							})
 						})
@@ -330,8 +336,19 @@
 					})
 				})
 
+
+				let source = document.createElement('div')
+				source.classList = 'menu-entry row footer-start align-center'
+				source.innerText = 'Source Code (GitHub)'
+
+				source.addEventListener('click', () => {
+					window.open('https://github.com/Torxed/coreborn', '_blank').focus();
+				})
+
+				menu.appendChild(source)
+
 				let footer = document.createElement('div')
-				footer.classList = 'menu-entry row footer align-center'
+				footer.classList = 'menu-entry row footer-end align-center'
 				footer.innerText = 'https://coreborn.gg/ (Official Website)'
 
 				footer.addEventListener('click', () => {
