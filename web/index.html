@@ -159,6 +159,7 @@
 						{x: 0.5865037755556675, y: 0.2583083217108489},
 						{x: 0.5830779357451787, y: 0.24529013043099177},
 						{x: 0.5728004163137126, y: 0.2343274430374279},
+						{x: 0.5597822250338556, y: 0.21308723621239786},
 						{x: 0.5597822250338556, y: 0.21308723621239786}
 					]
 				},
@@ -222,6 +223,7 @@
 						{x: 0.37204620341907413, y: 0.292566719815736},
 						{x: 0.37410170730536735, y: 0.29804806351251795},
 						{x: 0.3603983480634125, y: 0.3035294072092999},
+						{x: 0.35765767621502154, y: 0.3035294072092999},
 						{x: 0.35765767621502154, y: 0.3035294072092999}
 					]
 				},
@@ -237,8 +239,9 @@
 						{x: 0.3823237228505402, y: 0.20075421289463852},
 						{x: 0.37067586749487863, y: 0.20280971678093174},
 						{x: 0.35354666844243504, y: 0.20966139640190917},
+						{x: 0.35354666844243504, y: 0.20006904493254077},
+						{x: 0.35354666844243504, y: 0.20006904493254077},
 						{x: 0.35354666844243504, y: 0.20006904493254077}
-
 					]
 				},
 				'debug' : {
@@ -369,13 +372,16 @@
 									x: 0,
 									y: 0
 								}
+
+								ctx.beginPath();
+								ctx.strokeStyle = zones[region]?.color ? zones[region].color : '#000000';
+								ctx.lineWidth = 2;
+
 								zones[region]['positions'].forEach((pos) => {
 									if (!start)
 										start = pos
 									else if(!cp1)
 										cp1 = pos
-									else if(!cp2)
-										cp2 = pos
 									else if (!end)
 										end = pos
 
@@ -383,39 +389,22 @@
 									center.y += pos.y
 
 									if(end) {
-										ctx.beginPath();
-										ctx.strokeStyle = zones[region]?.color ? zones[region].color : '#000000';
-										ctx.lineWidth = 2;
 										ctx.moveTo(start.x * length_of_diagonal, start.y * length_of_diagonal);
-										ctx.bezierCurveTo(cp1.x * length_of_diagonal,
+
+										ctx.quadraticCurveTo(
+											cp1.x * length_of_diagonal,
 											cp1.y * length_of_diagonal,
-											cp2.x * length_of_diagonal,
-											cp2.y * length_of_diagonal,
 											end.x * length_of_diagonal,
 											end.y * length_of_diagonal
 										)
 
-										/*/ DEBUG:
-										ctx.moveTo(start.x * length_of_diagonal, start.y * length_of_diagonal)
-										ctx.arc(start.x * length_of_diagonal, start.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
-
-										ctx.moveTo(cp1.x * length_of_diagonal, cp1.y * length_of_diagonal)
-										ctx.arc(cp1.x * length_of_diagonal, cp1.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
-
-										ctx.moveTo(cp2.x * length_of_diagonal, cp2.y * length_of_diagonal)
-										ctx.arc(cp2.x * length_of_diagonal, cp2.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
-
-										ctx.moveTo(end.x * length_of_diagonal, end.y * length_of_diagonal)
-										ctx.arc(end.x * length_of_diagonal, end.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
-										// **/
-
 										start = end
 										cp1 = null
-										cp2 = null
 										end = null
-										ctx.stroke()
 									}
 								})
+								ctx.stroke()
+
 								center.x = center.x / zones[region]['positions'].length
 								center.y = center.y / zones[region]['positions'].length
 
