@@ -3,6 +3,9 @@
 		"host" : "beta.coreborn.app",
 		"prefix" : "/api"
 	},
+	"zones" : {
+		"visible" : false
+	},
 	"resources" : {
 		"gold" : {
 			"visible" : true
