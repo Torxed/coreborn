@@ -96,6 +96,158 @@
 			const dot_radius = 5;
 
 			let resources = {}
+			zones = {
+				'western_flowerwood' : {
+					'color' : '#0CA789',
+					'positions' : [
+						{x: 0.49537643659666775, y: 0.2624193294834353},
+						{x: 0.5008577802934496, y: 0.25145664208987145},
+						{x: 0.5029132841797429, y: 0.24186429062050305},
+						{x: 0.5008577802934496, y: 0.23090160322693917},
+						{x: 0.5118204676870135, y: 0.2281609313785482},
+						{x: 0.5289496667394571, y: 0.2295312673027437},
+						{x: 0.5405975220951187, y: 0.22747576341645045},
+						{x: 0.545393697829803, y: 0.21925374787127755},
+						{x: 0.5460788657919007, y: 0.20897622843981142},
+						{x: 0.55841188910966, y: 0.21240206825030014},
+						{x: 0.5632080648443443, y: 0.22679059545435273},
+						{x: 0.5714300803895171, y: 0.23364227507533014},
+						{x: 0.5817075998209833, y: 0.24323462654469855},
+						{x: 0.5858186075935697, y: 0.2583083217108489},
+						{x: 0.5871889435177652, y: 0.2754375207632924},
+						{x: 0.576911424086299, y: 0.28023369649797664},
+						{x: 0.5741707522379081, y: 0.2877705440810518},
+						{x: 0.5680042405790284, y: 0.29393705573993145},
+						{x: 0.5659487366927352, y: 0.3062700790576908},
+						{x: 0.5515602094886826, y: 0.3076404149818863},
+						{x: 0.5447085298677051, y: 0.29667772758832245},
+						{x: 0.539912354133021, y: 0.28365953630846535},
+						{x: 0.5262089948910661, y: 0.2761226887253902},
+						{x: 0.5152463074975022, y: 0.2699561770665105},
+						{x: 0.49537643659666775, y: 0.2624193294834353}
+					]
+				},
+				'eastern_flowerwood' : {
+					'color' : '#0CA789',
+					'positions' : [
+						{x: 0.5597822250338556, y: 0.21308723621239786},
+						{x: 0.5714300803895171, y: 0.21719824398498433},
+						{x: 0.5817075998209833, y: 0.20760589251561593},
+						{x: 0.5988367988734268, y: 0.1986987090083453},
+						{x: 0.6091143183048929, y: 0.2151427400986911},
+						{x: 0.6091143183048929, y: 0.23227193915113467},
+						{x: 0.6145956620016749, y: 0.2521418100519692},
+						{x: 0.6248731814331411, y: 0.25488248190036017},
+						{x: 0.6413172125234868, y: 0.25351214597616467},
+						{x: 0.6529650678791484, y: 0.24734563431728498},
+						{x: 0.6522798999170507, y: 0.2603638255971421},
+						{x: 0.6522798999170507, y: 0.2699561770665105},
+						{x: 0.6522798999170507, y: 0.28365953630846535},
+						{x: 0.651594731954953, y: 0.3069552470197886},
+						{x: 0.6413172125234868, y: 0.3179179344133525},
+						{x: 0.6317248610541185, y: 0.3042145751713976},
+						{x: 0.6241880134710432, y: 0.29393705573993145},
+						{x: 0.6118549901532839, y: 0.2884557120431495},
+						{x: 0.5995219668355246, y: 0.29462222370202923},
+						{x: 0.5858186075935697, y: 0.30010356739881117},
+						{x: 0.5741707522379081, y: 0.31175142275447276},
+						{x: 0.566633904654833, y: 0.3062700790576908},
+						{x: 0.5700597444653216, y: 0.29462222370202923},
+						{x: 0.5755410881621036, y: 0.2891408800052473},
+						{x: 0.5782817600104946, y: 0.28228920038426986},
+						{x: 0.5871889435177652, y: 0.2768078566874879},
+						{x: 0.5865037755556675, y: 0.2583083217108489},
+						{x: 0.5830779357451787, y: 0.24529013043099177},
+						{x: 0.5728004163137126, y: 0.2343274430374279},
+						{x: 0.5597822250338556, y: 0.21308723621239786}
+					]
+				},
+				'lonely_fields' : {
+					'color' : '#FEF445',
+					'positions' : [
+						{x: 0.6611870834243214, y: 0.29462222370202923},
+						{x: 0.6591315795380281, y: 0.2768078566874879},
+						{x: 0.6550205717654417, y: 0.26447483336972855},
+						{x: 0.6584464115759304, y: 0.2555676498624579},
+						{x: 0.6632425873106146, y: 0.24803080227938273},
+						{x: 0.6742052747041785, y: 0.25625281782455567},
+						{x: 0.6879086339461333, y: 0.25488248190036017},
+						{x: 0.6988713213396972, y: 0.25282697801406695},
+						{x: 0.6920196417187198, y: 0.271326512990706},
+						{x: 0.6947603135671108, y: 0.2829743683463676},
+						{x: 0.6995564893017949, y: 0.29667772758832245},
+						{x: 0.6899641378324266, y: 0.29393705573993145},
+						{x: 0.6611870834243214, y: 0.29462222370202923}
+					]
+				},
+				'the_gilded_yearn' : {
+					'color' : '#F4FF2f',
+					'positions' : [
+						{x: 0.35971318010131476, y: 0.3028442392472021},
+						{x: 0.3473801567835554, y: 0.29736289555042017},
+						{x: 0.3473801567835554, y: 0.28708537611895407},
+						{x: 0.3384729732762847, y: 0.2747523528011947},
+						{x: 0.3302509577311118, y: 0.2761226887253902},
+						{x: 0.3186031023754502, y: 0.27064134502860826},
+						{x: 0.30832558294398404, y: 0.26721550521811954},
+						{x: 0.3062700790576908, y: 0.2541973139382624},
+						{x: 0.29530739166412695, y: 0.26310449744553305},
+						{x: 0.2905112159294428, y: 0.2754375207632924},
+						{x: 0.27886336057378114, y: 0.2891408800052473},
+						{x: 0.27064134502860826, y: 0.2877705440810518},
+						{x: 0.26790067318021726, y: 0.27954852853587886},
+						{x: 0.2617341615213376, y: 0.28160403242217213},
+						{x: 0.25625281782455567, y: 0.2726968489149015},
+						{x: 0.2439197945067963, y: 0.27954852853587886},
+						{x: 0.2343274430374279, y: 0.27954852853587886},
+						{x: 0.2247350915680595, y: 0.2740671848390969},
+						{x: 0.22542025953015724, y: 0.26447483336972855},
+						{x: 0.23364227507533014, y: 0.2576231537487511},
+						{x: 0.24117912265840533, y: 0.25625281782455567},
+						{x: 0.24323462654469855, y: 0.24323462654469855},
+						{x: 0.25351214597616467, y: 0.24871597024148048},
+						{x: 0.26584516929392404, y: 0.24597529839308951},
+						{x: 0.28023369649797664, y: 0.25351214597616467},
+						{x: 0.2905112159294428, y: 0.24666046635518726},
+						{x: 0.3062700790576908, y: 0.24049395469630758},
+						{x: 0.3233992781101344, y: 0.2425494585826008},
+						{x: 0.3329916295795028, y: 0.24117912265840533},
+						{x: 0.337787805314187, y: 0.25351214597616467},
+						{x: 0.3412136451246757, y: 0.2617341615213376},
+						{x: 0.35697250825292376, y: 0.2569379857866534},
+						{x: 0.3624538519497057, y: 0.26927100910441276},
+						{x: 0.37136103545697635, y: 0.2740671848390969},
+						{x: 0.3638241878739012, y: 0.2829743683463676},
+						{x: 0.3665648597222922, y: 0.2884557120431495},
+						{x: 0.37204620341907413, y: 0.292566719815736},
+						{x: 0.37410170730536735, y: 0.29804806351251795},
+						{x: 0.3603983480634125, y: 0.3035294072092999},
+						{x: 0.35765767621502154, y: 0.3035294072092999}
+					]
+				},
+				'graveyard' : {
+					'color' : '#9F4F4F',
+					'positions' : [
+						{x: 0.35354666844243504, y: 0.20006904493254077},
+						{x: 0.3603983480634125, y: 0.19595803715995433},
+						{x: 0.3672500276843899, y: 0.1925321973494656},
+						{x: 0.37478687526746507, y: 0.18842118957687914},
+						{x: 0.380268218964247, y: 0.19321736531156336},
+						{x: 0.3898605704336154, y: 0.1973283730841498},
+						{x: 0.3823237228505402, y: 0.20075421289463852},
+						{x: 0.37067586749487863, y: 0.20280971678093174},
+						{x: 0.35354666844243504, y: 0.20966139640190917},
+						{x: 0.35354666844243504, y: 0.20006904493254077}
+
+					]
+				},
+				'debug' : {
+					'color' : '#FF44FF',
+					'positions' : [
+						
+					]
+				}
+			}
 
 			let debug = [];
 
@@ -187,7 +339,6 @@
 					if (area.y < 0)
 						area.y = 0
 				}
-				// {x: cursor_pos.x - 50, y: cursor_pos.y - 50, width: 100, height: 100})
 				if(map_image) {
 					resizeImage(map_image, map_width, map_height)
 					.then((blob) => {
@@ -205,6 +356,80 @@
 							area?.height ? area.height : blob['height'],
 						)
 						ctx.filter = "grayscale(0%)";
+					})
+					.then(() => {
+						// Render the zones
+						if(document.querySelector('.zones-checkbox')?.checked) {
+							Object.keys(zones).forEach((region) => {
+								let start = null;
+								let cp1 = null;
+								let cp2 = null;
+								let end = null;
+								let center = {
+									x: 0,
+									y: 0
+								}
+								zones[region]['positions'].forEach((pos) => {
+									if (!start)
+										start = pos
+									else if(!cp1)
+										cp1 = pos
+									else if(!cp2)
+										cp2 = pos
+									else if (!end)
+										end = pos
+
+									center.x += pos.x
+									center.y += pos.y
+
+									if(end) {
+										ctx.beginPath();
+										ctx.strokeStyle = zones[region]?.color ? zones[region].color : '#000000';
+										ctx.lineWidth = 2;
+										ctx.moveTo(start.x * length_of_diagonal, start.y * length_of_diagonal);
+										ctx.bezierCurveTo(cp1.x * length_of_diagonal,
+											cp1.y * length_of_diagonal,
+											cp2.x * length_of_diagonal,
+											cp2.y * length_of_diagonal,
+											end.x * length_of_diagonal,
+											end.y * length_of_diagonal
+										)
+
+										/*/ DEBUG:
+										ctx.moveTo(start.x * length_of_diagonal, start.y * length_of_diagonal)
+										ctx.arc(start.x * length_of_diagonal, start.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
+
+										ctx.moveTo(cp1.x * length_of_diagonal, cp1.y * length_of_diagonal)
+										ctx.arc(cp1.x * length_of_diagonal, cp1.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
+
+										ctx.moveTo(cp2.x * length_of_diagonal, cp2.y * length_of_diagonal)
+										ctx.arc(cp2.x * length_of_diagonal, cp2.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
+
+										ctx.moveTo(end.x * length_of_diagonal, end.y * length_of_diagonal)
+										ctx.arc(end.x * length_of_diagonal, end.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
+										// **/
+
+										start = end
+										cp1 = null
+										cp2 = null
+										end = null
+										ctx.stroke()
+									}
+								})
+								center.x = center.x / zones[region]['positions'].length
+								center.y = center.y / zones[region]['positions'].length
+
+								ctx.moveTo(center.x * length_of_diagonal, center.y * length_of_diagonal)
+								ctx.font = "1vw serif"
+								ctx.textAlign = 'center'
+								ctx.fillStyle = zones[region]?.color ? zones[region].color : '#000000'
+								ctx.strokeStyle = '#000000'
+
+								const zone_text = region.split('_').map((item) => {return item[0].toUpperCase() + item.substring(1)}).join(' ')
+	  							ctx.strokeText(zone_text, center.x * length_of_diagonal, center.y * length_of_diagonal)
+	  							ctx.fillText(zone_text, center.x * length_of_diagonal, center.y * length_of_diagonal)
+							})
+						}
 					})
 					.then(() => {
 						debug.forEach((pos) => {
@@ -298,6 +523,14 @@
 
 					normalized_X = click.x / length_of_diagonal
 					normalized_Y = click.y / length_of_diagonal
+
+					/*zones.debug.positions.push(
+						{x: normalized_X, y: normalized_Y}
+					)
+
+					if(zones.debug.positions.length % 5 == 0)
+						render()*/
+
 					if(
 						current_add
 						&& normalized_X >= 0.030541382493515543
@@ -365,6 +598,38 @@
 			function load_filters() {
 				let menu = document.querySelector('.menu');
 				menu.innerHTML = '';
+
+				let zones_div = document.createElement('div')
+				zones_div.classList = 'zones'
+
+				let zone_header = document.createElement('div')
+				zone_header.classList = 'menu-entry row header'
+
+				const filter_zones = document.createElement('div')
+				filter_zones.classList = 'filter-checkbox align-center'
+
+				const zones_checkbox = document.createElement('input')
+				zones_checkbox.type = 'checkbox'
+				zones_checkbox.classList = 'zones-checkbox'
+				zones_checkbox.checked = config?.zones?.visible ? config.zones.visible : false
+
+				const zones_label = document.createElement('div')
+				zones_label.classList = 'filter-label'
+				zones_label.innerText = 'Zones'
+
+				filter_zones.appendChild(zones_checkbox)
+				zone_header.appendChild(filter_zones)
+				zone_header.appendChild(zones_label);
+
+				filter_zones.addEventListener('click', (event) => {
+					if(event.srcElement == filter_zones) {
+						zones_checkbox.checked = zones_checkbox.checked ? false : true
+					}
+					render()
+				})
+
+				zones_div.appendChild(zone_header)
+				menu.appendChild(zones_div)
 
 				Object.keys(resources).forEach((category) => {
 					let category_div = document.createElement('div')
