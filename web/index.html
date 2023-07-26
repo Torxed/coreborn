@@ -94,6 +94,8 @@
 			let current_category = null;
 			let mouse_motion_render = null;
 			let mouse_position_history = [];
+			let sprites = [];
+			const zoom_scale = 3;
 			const dot_radius = 5;
 
 			let resources = {}
@@ -181,6 +183,81 @@
 				})
 			}
 
+			class Node {
+				constructor(category, resource, pos, index) {
+					this.category = category
+					this.resource = resource
+					this.index = index
+					this.pos = pos
+				}
+
+				render(area) {
+					ctx.beginPath();
+					ctx.fillStyle = resources[this.category][this.resource]['color'];
+					ctx.strokeStyle = '#000000'
+					ctx.moveTo(this.pos.x * length_of_diagonal, this.pos.y * length_of_diagonal);
+					ctx.arc(this.pos.x * length_of_diagonal, this.pos.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
+					ctx.stroke();
+					ctx.fill();
+				}
+			}
+
+			class MiniZoom {
+				constructor(title, x, y, width, height) {
+					this.x = x
+					this.y = y
+					this.width = width
+					this.height = height
+					this.title_text = title
+					this.sprites = []
+				}
+
+				on_ok() {
+					console.log('Ok!')
+				}
+
+				on_cancel() {
+					console.log('Cancel')
+				}
+
+				render(area = null) {
+					if (area === null || (area.x >= this.x && area.x <= this.x + this.width && area.y >= this.y && area.y <= this.y + this.height)) {
+						ctx.beginPath();
+						ctx.fillStyle = '#C2C2C2';
+						ctx.strokeStyle = '#000000';
+						ctx.lineWidth = 2;
+						ctx.rect(
+							(this.x * length_of_diagonal) - (this.width/2),
+							(this.y * length_of_diagonal) - (this.height/2),
+							this.width,
+							this.height);
+						ctx.stroke();
+						ctx.fill();
+
+						resizeImage(map_image, map_width, map_height)
+						.then((blob) => {
+							ctx.drawImage(
+								blob['img'],
+								(this.x * length_of_diagonal) - (this.width/2) + this.width/zoom_scale,
+								(this.y * length_of_diagonal) - (this.height/2) + this.height/zoom_scale,
+								this.width/zoom_scale,
+								this.height/zoom_scale,
+								(this.x * length_of_diagonal) - (this.width/2),
+								(this.y * length_of_diagonal) - (this.height/2),
+								this.width,
+								this.height
+							)
+							ctx.filter = "grayscale(0%)";
+						})
+						.then(() => {
+							this.sprites.forEach((item) => {
+								item.render(area)
+							})
+						})
+					}
+				}
+			}
+
 			function render(area = null) {
 				if (area !== null) {
 					if (area.x < 0)
@@ -264,6 +341,11 @@
 							ctx.fill();
 						}
 					})
+					.then(() => {
+						sprites.forEach((item) => {
+							item.render(area)
+						})
+					})
 				}
 			}
 
@@ -291,6 +373,73 @@
 				image.onload = load_map_image
 				image.src = "/map.png";
 
+				document.addEventListener('contextmenu', (event) => {
+					const click = {
+						x: event.layerX,
+						y: event.layerY
+					}
+
+					// Normalized values:
+					const x = click.x / length_of_diagonal
+					const y = click.y / length_of_diagonal
+					const buffer = 50 / length_of_diagonal
+
+					if(sprites.some(item => item instanceof MiniZoom)) {
+						[...sprites].forEach((item, index) => {
+							if(item instanceof MiniZoom) {
+								sprites.splice(index, 1)
+								return
+							}
+						})
+					}
+					
+					const _MiniZoom = new MiniZoom("MiniZoom", x, y, 150, 150)
+
+					let resources_to_destroy = {}
+					Object.keys(resources).forEach((category) => {
+						Object.keys(resources[category]).forEach((resource) => {
+							resources[category][resource]['positions']?.forEach((pos, index) => {
+								if(pos.x >= x - buffer && pos.x <= x + buffer && pos.y >= y - buffer && pos.y <= y + buffer) {
+									if(typeof resources_to_destroy[category] === 'undefined')
+										resources_to_destroy[category] = {}
+									if(typeof resources_to_destroy[category][resource] === 'undefined')
+										resources_to_destroy[category][resource] = {}
+
+									// Need to make a copy to not permamently distort the nodes
+									zoomed_pos = {
+										x: pos.x,
+										y: pos.y
+									}
+
+									if (zoomed_pos.x < x)
+										zoomed_pos.x = zoomed_pos.x - ((zoomed_pos.x - x) * zoom_scale)
+									else if (zoomed_pos.x > x)
+										zoomed_pos.x = zoomed_pos.x + ((zoomed_pos.x - x) * zoom_scale)
+									else if (zoomed_pos.y < y)
+										zoomed_pos.y = zoomed_pos.y - ((zoomed_pos.y - y) * zoom_scale)
+									else if (zoomed_pos.y > y)
+										zoomed_pos.y = zoomed_pos.y + ((pos.y - y) * zoom_scale)
+
+									resources_to_destroy[category][resource][index] = zoomed_pos
+									_MiniZoom.sprites.push(new Node(category, resource, zoomed_pos, index))
+								}
+							})
+						})
+					})
+
+					console.log(resources_to_destroy)
+
+					_MiniZoom.on_ok = () => {
+						console.log("new ok")
+					}
+
+					sprites.push(_MiniZoom)
+
+					render()
+
+					event.preventDefault();
+				}, false);
+
 				canvas.addEventListener('click', (event) => {
 					const click = {
 						x: event.layerX,
@@ -299,6 +448,7 @@
 
 					normalized_X = click.x / length_of_diagonal
 					normalized_Y = click.y / length_of_diagonal
+
 					if(
 						current_add
 						&& normalized_X >= 0.030541382493515543
