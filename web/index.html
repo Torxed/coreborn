@@ -95,7 +95,7 @@
 			let mouse_motion_render = null;
 			let mouse_position_history = [];
 			let sprites = [];
-			const zoom_scale = 3;
+			const zoom_scale = 2;
 			const dot_radius = 5;
 
 			let resources = {}
@@ -195,8 +195,8 @@
 					ctx.beginPath();
 					ctx.fillStyle = resources[this.category][this.resource]['color'];
 					ctx.strokeStyle = '#000000'
-					ctx.moveTo(this.pos.x * length_of_diagonal, this.pos.y * length_of_diagonal);
-					ctx.arc(this.pos.x * length_of_diagonal, this.pos.y * length_of_diagonal, dot_radius, 0, 2 * Math.PI);
+					ctx.moveTo(this.pos.x, this.pos.y);
+					ctx.arc(this.pos.x, this.pos.y, dot_radius, 0, 2 * Math.PI);
 					ctx.stroke();
 					ctx.fill();
 				}
@@ -222,36 +222,69 @@
 
 				render(area = null) {
 					if (area === null || (area.x >= this.x && area.x <= this.x + this.width && area.y >= this.y && area.y <= this.y + this.height)) {
+						
+						let box = {
+							x: (this.x * length_of_diagonal) - this.width/2,
+							y: (this.y * length_of_diagonal) - this.height/2,
+							width: this.width,
+							height: this.height
+
+						}
+
+						let zoom_info = {
+							x: box.x + (box.width  / 2) - (box.width / zoom_scale / 2),
+							y: box.y + (box.width  / 2) - (box.width / zoom_scale / 2),
+							width: box.width/zoom_scale,
+							height: box.width/zoom_scale
+						}
+
 						ctx.beginPath();
 						ctx.fillStyle = '#C2C2C2';
 						ctx.strokeStyle = '#000000';
 						ctx.lineWidth = 2;
 						ctx.rect(
-							(this.x * length_of_diagonal) - (this.width/2),
-							(this.y * length_of_diagonal) - (this.height/2),
-							this.width,
-							this.height);
+							box.x,
+							box.y,
+							box.width,
+							box.width);
 						ctx.stroke();
 						ctx.fill();
+
 
 						resizeImage(map_image, map_width, map_height)
 						.then((blob) => {
 							ctx.drawImage(
 								blob['img'],
-								(this.x * length_of_diagonal) - (this.width/2) + this.width/zoom_scale,
-								(this.y * length_of_diagonal) - (this.height/2) + this.height/zoom_scale,
-								this.width/zoom_scale,
-								this.height/zoom_scale,
-								(this.x * length_of_diagonal) - (this.width/2),
-								(this.y * length_of_diagonal) - (this.height/2),
-								this.width,
-								this.height
+								zoom_info.x,
+								zoom_info.y,
+								zoom_info.width,
+								zoom_info.height,
+								box.x,
+								box.y,
+								box.width,
+								box.width
 							)
 							ctx.filter = "grayscale(0%)";
 						})
 						.then(() => {
-							this.sprites.forEach((item) => {
-								item.render(area)
+							const buffer = this.width / length_of_diagonal
+							Object.keys(resources).forEach((category) => {
+								Object.keys(resources[category]).forEach((resource) => {
+									resources[category][resource]['positions']?.forEach((pos, index) => {
+										if(pos.x >= this.x - buffer && pos.x <= this.x + buffer && pos.y >= this.y - buffer && pos.y <= this.y + buffer) {
+											// Need to make a copy to not permamently distort the nodes
+											const zoomed_pos = {
+												x: pos.x,
+												y: pos.y
+											}
+
+											zoomed_pos.x = zoomed_pos.x * length_of_diagonal
+											zoomed_pos.y = zoomed_pos.y * length_of_diagonal
+
+											new Node(category, resource, zoomed_pos, index).render(area)
+										}
+									})
+								})
 							})
 						})
 					}
@@ -382,7 +415,6 @@
 					// Normalized values:
 					const x = click.x / length_of_diagonal
 					const y = click.y / length_of_diagonal
-					const buffer = 50 / length_of_diagonal
 
 					if(sprites.some(item => item instanceof MiniZoom)) {
 						[...sprites].forEach((item, index) => {
@@ -395,39 +427,7 @@
 					
 					const _MiniZoom = new MiniZoom("MiniZoom", x, y, 150, 150)
 
-					let resources_to_destroy = {}
-					Object.keys(resources).forEach((category) => {
-						Object.keys(resources[category]).forEach((resource) => {
-							resources[category][resource]['positions']?.forEach((pos, index) => {
-								if(pos.x >= x - buffer && pos.x <= x + buffer && pos.y >= y - buffer && pos.y <= y + buffer) {
-									if(typeof resources_to_destroy[category] === 'undefined')
-										resources_to_destroy[category] = {}
-									if(typeof resources_to_destroy[category][resource] === 'undefined')
-										resources_to_destroy[category][resource] = {}
-
-									// Need to make a copy to not permamently distort the nodes
-									zoomed_pos = {
-										x: pos.x,
-										y: pos.y
-									}
-
-									if (zoomed_pos.x < x)
-										zoomed_pos.x = zoomed_pos.x - ((zoomed_pos.x - x) * zoom_scale)
-									else if (zoomed_pos.x > x)
-										zoomed_pos.x = zoomed_pos.x + ((zoomed_pos.x - x) * zoom_scale)
-									else if (zoomed_pos.y < y)
-										zoomed_pos.y = zoomed_pos.y - ((zoomed_pos.y - y) * zoom_scale)
-									else if (zoomed_pos.y > y)
-										zoomed_pos.y = zoomed_pos.y + ((pos.y - y) * zoom_scale)
-
-									resources_to_destroy[category][resource][index] = zoomed_pos
-									_MiniZoom.sprites.push(new Node(category, resource, zoomed_pos, index))
-								}
-							})
-						})
-					})
-
-					console.log(resources_to_destroy)
+					//console.log(resources_to_destroy)
 
 					_MiniZoom.on_ok = () => {
 						console.log("new ok")
