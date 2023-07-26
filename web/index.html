@@ -267,8 +267,8 @@
 			}
 
 			window.onresize = (event) => {
-				canvas.width = document.querySelector('.container').scrollWidth - document.querySelector('.menu').scrollWidth
-				canvas.height = document.querySelector('.container').scrollHeight
+				canvas.width = document.querySelector('.container').clientWidth
+				canvas.height = document.querySelector('.container').clientHeight
 
 				map_width = canvas.width
 				map_height = canvas.height
@@ -278,8 +278,8 @@
 
 			window.onload = () => {
 				canvas = document.querySelector('.map')
-				canvas.width = document.querySelector('.container').scrollWidth - document.querySelector('.menu').scrollWidth
-				canvas.height = document.querySelector('.container').scrollHeight
+				canvas.width = document.querySelector('.container').clientWidth
+				canvas.height = document.querySelector('.container').clientHeight
 
 				map_width = canvas.width
 				map_height = canvas.height
