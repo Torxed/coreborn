@@ -95,7 +95,7 @@
 			let mouse_motion_render = null;
 			let mouse_position_history = [];
 			let sprites = [];
-			const zoom_scale = 2;
+			const zoom_scale = 4;
 			const dot_radius = 5;
 
 			let resources = {}
@@ -196,9 +196,14 @@
 					ctx.fillStyle = resources[this.category][this.resource]['color'];
 					ctx.strokeStyle = '#000000'
 					ctx.moveTo(this.pos.x, this.pos.y);
-					ctx.arc(this.pos.x, this.pos.y, dot_radius, 0, 2 * Math.PI);
+					ctx.arc(this.pos.x, this.pos.y, dot_radius * (zoom_scale/2), 0, 2 * Math.PI);
 					ctx.stroke();
 					ctx.fill();
+				}
+
+				on_click(pos) {
+					console.log(this.pos)
+					console.log(pos)
 				}
 			}
 
@@ -210,6 +215,13 @@
 					this.height = height
 					this.title_text = title
 					this.sprites = []
+				}
+
+				on_click(pos) {
+					this.sprites.forEach((sprite) => {
+						if(typeof sprite.on_click === 'function')
+							sprite.on_click(pos)
+					})
 				}
 
 				on_ok() {
@@ -237,6 +249,8 @@
 							width: box.width/zoom_scale,
 							height: box.width/zoom_scale
 						}
+
+						zoom_info.length_of_diagonal = Math.sqrt((zoom_info.width) * (zoom_info.width) + (zoom_info.height) * (zoom_info.height))
 
 						ctx.beginPath();
 						ctx.fillStyle = '#C2C2C2';
@@ -267,24 +281,30 @@
 							ctx.filter = "grayscale(0%)";
 						})
 						.then(() => {
-							const buffer = this.width / length_of_diagonal
 							Object.keys(resources).forEach((category) => {
 								Object.keys(resources[category]).forEach((resource) => {
 									resources[category][resource]['positions']?.forEach((pos, index) => {
-										if(pos.x >= this.x - buffer && pos.x <= this.x + buffer && pos.y >= this.y - buffer && pos.y <= this.y + buffer) {
+										if(
+											pos.x * length_of_diagonal >= zoom_info.x
+											&& pos.x * length_of_diagonal <= zoom_info.x + zoom_info.width
+											&& pos.y * length_of_diagonal >= zoom_info.y
+											&& pos.y * length_of_diagonal <= zoom_info.y + zoom_info.height
+										) {
 											// Need to make a copy to not permamently distort the nodes
 											const zoomed_pos = {
-												x: pos.x,
-												y: pos.y
+												x: box.x + ((pos.x - (zoom_info.x / length_of_diagonal)) * (box.width / zoom_info.width) * length_of_diagonal),
+												y: box.y + ((pos.y - (zoom_info.y / length_of_diagonal)) * (box.height / zoom_info.height) * length_of_diagonal)
 											}
 
-											zoomed_pos.x = zoomed_pos.x * length_of_diagonal
-											zoomed_pos.y = zoomed_pos.y * length_of_diagonal
-
-											new Node(category, resource, zoomed_pos, index).render(area)
+											this.sprites.push(new Node(category, resource, zoomed_pos, index))
 										}
 									})
 								})
+							})
+						})
+						.then(() => {
+							this.sprites.forEach((sprite) => {
+								sprite.render()
 							})
 						})
 					}
@@ -468,6 +488,12 @@
 						debug.push([normalized_X, normalized_Y])
 						// console.log(JSON.stringify(debug))
 						load_resources()
+					} else {
+						sprites.forEach((sprite) => {
+							if(typeof sprite.on_click === 'function') {
+								sprite.on_click(click)
+							}
+						})
 					}
 				})
 
