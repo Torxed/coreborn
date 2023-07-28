@@ -134,6 +134,7 @@
 				.then((data) => {
 					//console.log(data)
 					resources = data
+					debug = []
 					load_filters()
 					render()
 				})
@@ -493,6 +494,10 @@
 						})
 					}
 					
+					current_add = null
+					current_category = null
+					render() // To remove the dot (TODO: make this into area instead)
+
 					const _MiniZoom = new MiniZoom("MiniZoom", x, y, 150, 150)
 
 					//console.log(resources_to_destroy)
@@ -533,6 +538,10 @@
 							},
 							body: JSON.stringify({"x": normalized_X, "y": normalized_Y})
 						})
+						.then(response => response.json())
+						.then((data) => {
+							load_resources()
+						})
 						debug.push([normalized_X, normalized_Y])
 						// console.log(JSON.stringify(debug))
 						load_resources()
@@ -569,6 +578,20 @@
 						}, 1)
 					}
 				})
+
+				window.addEventListener('keyup', (event) => {
+					if(event.keyCode == 27) {
+						current_add = null
+						current_category = null
+
+						sprites.forEach((sprite, index) => {
+							if(sprite instanceof MiniZoom)
+								sprites.splice(index, 1)
+						})
+
+						render()
+					}
+				}, false)
 
 				load_config()
 				.then(() => {
