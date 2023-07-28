@@ -94,6 +94,8 @@
 			let current_category = null;
 			let mouse_motion_render = null;
 			let mouse_position_history = [];
+			let sprites = [];
+			const zoom_scale = 4;
 			const dot_radius = 5;
 
 			let resources = {}
@@ -182,6 +184,182 @@
 				})
 			}
 
+			class Node {
+				constructor(category, resource, pos, index) {
+					this.category = category
+					this.resource = resource
+					this.index = index
+					this.pos = pos
+				}
+
+				render(area) {
+					ctx.beginPath();
+					ctx.fillStyle = resources[this.category][this.resource]['color'];
+					ctx.strokeStyle = '#000000'
+					ctx.moveTo(this.pos.x, this.pos.y);
+					ctx.arc(this.pos.x, this.pos.y, dot_radius * (zoom_scale/2), 0, 2 * Math.PI);
+					ctx.stroke();
+					ctx.fill();
+				}
+
+				_on_click(pos) {
+					if ((pos.x - this.pos.x)**2 + (pos.y - this.pos.y)**2 < dot_radius**2) {
+						this.on_click(pos)
+					}
+				}
+
+				on_click(pos) {
+					// A placeholder to allow overriding functionality
+				}
+			}
+
+			class MiniZoom {
+				constructor(title, x, y, width, height) {
+					this.x = x
+					this.y = y
+					this.width = width
+					this.height = height
+					this.title_text = title
+					this.sprites = []
+				}
+
+				_on_click(pos) {
+					this.sprites.forEach((sprite) => {
+						if(typeof sprite._on_click === 'function')
+							if (sprite._on_click(pos))
+								return null;
+					})
+					// TODO: Convert this.x to (this.x - this.width/2) stead so we don't have to do it everywhere.
+					if (pos.x >= (this.x * length_of_diagonal - this.width / 2) && pos.x <= (this.x * length_of_diagonal - this.width / 2) + this.width && pos.y >= (this.y * length_of_diagonal - this.height / 2) && pos.y <= (this.y * length_of_diagonal - this.height / 2) + this.height) {
+						this.on_click(pos)
+					} else {
+						this.on_outside_click(pos)
+					}
+				}
+
+				on_click(pos) {
+					// Placeholder
+				}
+
+				on_outside_click(pos) {
+					sprites.forEach((sprite, index) => {
+						if(sprite instanceof MiniZoom)
+							sprites.splice(index, 1)
+					})
+					render()
+				}
+
+				on_ok() {
+					console.log('Ok!')
+				}
+
+				on_cancel() {
+					console.log('Cancel')
+				}
+
+				render(area = null) {
+					if (area === null || (area.x >= this.x && area.x <= this.x + this.width && area.y >= this.y && area.y <= this.y + this.height)) {
+						
+						let box = {
+							x: (this.x * length_of_diagonal) - this.width/2,
+							y: (this.y * length_of_diagonal) - this.height/2,
+							width: this.width,
+							height: this.height
+
+						}
+
+						let zoom_info = {
+							x: box.x + (box.width  / 2) - (box.width / zoom_scale / 2),
+							y: box.y + (box.width  / 2) - (box.width / zoom_scale / 2),
+							width: box.width/zoom_scale,
+							height: box.width/zoom_scale
+						}
+
+						zoom_info.length_of_diagonal = Math.sqrt((zoom_info.width) * (zoom_info.width) + (zoom_info.height) * (zoom_info.height))
+
+						ctx.beginPath();
+						ctx.fillStyle = '#C2C2C2';
+						ctx.strokeStyle = '#000000';
+						ctx.lineWidth = 2;
+						ctx.rect(
+							box.x,
+							box.y - 31,
+							box.width,
+							30
+						)
+						ctx.rect(
+							box.x,
+							box.y,
+							box.width,
+							box.width);
+						ctx.stroke();
+						ctx.fill();
+						ctx.fillStyle = '#000000'
+						ctx.textAlign = "center";
+						ctx.font = "20px monospace";
+						ctx.fillText("Delete Node", box.x + box.width/2, box.y-10);
+
+
+						resizeImage(map_image, map_width, map_height)
+						.then((blob) => {
+							ctx.drawImage(
+								blob['img'],
+								zoom_info.x,
+								zoom_info.y,
+								zoom_info.width,
+								zoom_info.height,
+								box.x,
+								box.y,
+								box.width,
+								box.width
+							)
+							ctx.filter = "grayscale(0%)";
+						})
+						.then(() => {
+							Object.keys(resources).forEach((category) => {
+								Object.keys(resources[category]).forEach((resource) => {
+									resources[category][resource]['positions']?.forEach((pos, index) => {
+										if(
+											pos.x * length_of_diagonal >= zoom_info.x
+											&& pos.x * length_of_diagonal <= zoom_info.x + zoom_info.width
+											&& pos.y * length_of_diagonal >= zoom_info.y
+											&& pos.y * length_of_diagonal <= zoom_info.y + zoom_info.height
+										) {
+											// Need to make a copy to not permamently distort the nodes
+											const zoomed_pos = {
+												x: box.x + ((pos.x - (zoom_info.x / length_of_diagonal)) * (box.width / zoom_info.width) * length_of_diagonal),
+												y: box.y + ((pos.y - (zoom_info.y / length_of_diagonal)) * (box.height / zoom_info.height) * length_of_diagonal)
+											}
+
+											const node = new Node(category, resource, zoomed_pos)
+											node.on_click = (click) => {
+												fetch(`https://${config.api.host}${config.api.prefix}/resources/${category}/${resource}/${pos.id}`, {
+													method: 'DELETE'
+												})
+												.then(response => response.json())
+												.then((data) => {
+													sprites.forEach((sprite, index) => {
+														if(sprite instanceof MiniZoom)
+															sprites.splice(index, 1)
+													})
+													load_resources() // TODO: A bit inefficient, we should only reload the affected resource
+												})
+											}
+											this.sprites.push(node)
+										}
+									})
+								})
+							})
+						})
+						.then(() => {
+							this.sprites.forEach((sprite) => {
+								sprite.render()
+							})
+						})
+					}
+				}
+			}
+
 			function render(area = null) {
 				if (area !== null) {
 					if (area.x < 0)
@@ -265,6 +443,11 @@
 							ctx.fill();
 						}
 					})
+					.then(() => {
+						sprites.forEach((item) => {
+							item.render(area)
+						})
+					})
 				}
 			}
 
@@ -292,6 +475,44 @@
 				image.onload = load_map_image
 				image.src = "/map.png";
 
+				document.addEventListener('contextmenu', (event) => {
+					const click = {
+						x: event.layerX,
+						y: event.layerY
+					}
+
+					// Normalized values:
+					const x = click.x / length_of_diagonal
+					const y = click.y / length_of_diagonal
+
+					if(sprites.some(item => item instanceof MiniZoom)) {
+						[...sprites].forEach((item, index) => {
+							if(item instanceof MiniZoom) {
+								sprites.splice(index, 1)
+								return
+							}
+						})
+					}
+					
+					current_add = null
+					current_category = null
+					render() // To remove the dot (TODO: make this into area instead)
+
+					const _MiniZoom = new MiniZoom("MiniZoom", x, y, 150, 150)
+
+					//console.log(resources_to_destroy)
+
+					_MiniZoom.on_ok = () => {
+						console.log("new ok")
+					}
+
+					sprites.push(_MiniZoom)
+
+					render()
+
+					event.preventDefault();
+				}, false);
+
 				canvas.addEventListener('click', (event) => {
 					const click = {
 						x: event.layerX,
@@ -300,6 +521,7 @@
 
 					normalized_X = click.x / length_of_diagonal
 					normalized_Y = click.y / length_of_diagonal
+
 					if(
 						current_add
 						&& normalized_X >= 0.030541382493515543
@@ -322,6 +544,13 @@
 						})
 						debug.push([normalized_X, normalized_Y])
 						// console.log(JSON.stringify(debug))
+						load_resources()
+					} else {
+						sprites.forEach((sprite) => {
+							if(typeof sprite._on_click === 'function') {
+								sprite._on_click(click)
+							}
+						})
 					}
 				})
 
@@ -351,9 +580,15 @@
 				})
 
 				window.addEventListener('keyup', (event) => {
-					if(current_add && event.keyCode == 27) {
+					if(event.keyCode == 27) {
 						current_add = null
 						current_category = null
+
+						sprites.forEach((sprite, index) => {
+							if(sprite instanceof MiniZoom)
+								sprites.splice(index, 1)
+						})
+
 						render()
 					}
 				}, false)
