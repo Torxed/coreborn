@@ -282,11 +282,21 @@
 						ctx.lineWidth = 2;
 						ctx.rect(
 							box.x,
+							box.y - 31,
+							box.width,
+							30
+						)
+						ctx.rect(
+							box.x,
 							box.y,
 							box.width,
 							box.width);
 						ctx.stroke();
 						ctx.fill();
+						ctx.fillStyle = '#000000'
+						ctx.textAlign = "center";
+						ctx.font = "20px monospace";
+						ctx.fillText("Delete Node", box.x + box.width/2, box.y-10);
 
 
 						resizeImage(map_image, map_width, map_height)
