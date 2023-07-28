@@ -201,9 +201,14 @@
 					ctx.fill();
 				}
 
+				_on_click(pos) {
+					if ((pos.x - this.pos.x)**2 + (pos.y - this.pos.y)**2 < dot_radius**2) {
+						this.on_click(pos)
+					}
+				}
+
 				on_click(pos) {
-					console.log(this.pos)
-					console.log(pos)
+					// A placeholder to allow overriding functionality
 				}
 			}
 
@@ -217,11 +222,30 @@
 					this.sprites = []
 				}
 
-				on_click(pos) {
+				_on_click(pos) {
 					this.sprites.forEach((sprite) => {
-						if(typeof sprite.on_click === 'function')
-							sprite.on_click(pos)
+						if(typeof sprite._on_click === 'function')
+							if (sprite._on_click(pos))
+								return null;
 					})
+					// TODO: Convert this.x to (this.x - this.width/2) stead so we don't have to do it everywhere.
+					if (pos.x >= (this.x * length_of_diagonal - this.width / 2) && pos.x <= (this.x * length_of_diagonal - this.width / 2) + this.width && pos.y >= (this.y * length_of_diagonal - this.height / 2) && pos.y <= (this.y * length_of_diagonal - this.height / 2) + this.height) {
+						this.on_click(pos)
+					} else {
+						this.on_outside_click(pos)
+					}
+				}
+
+				on_click(pos) {
+					// Placeholder
+				}
+
+				on_outside_click(pos) {
+					sprites.forEach((sprite, index) => {
+						if(sprite instanceof MiniZoom)
+							sprites.splice(index, 1)
+					})
+					render()
 				}
 
 				on_ok() {
@@ -296,7 +320,21 @@
 												y: box.y + ((pos.y - (zoom_info.y / length_of_diagonal)) * (box.height / zoom_info.height) * length_of_diagonal)
 											}
 
-											this.sprites.push(new Node(category, resource, zoomed_pos, index))
+											const node = new Node(category, resource, zoomed_pos)
+											node.on_click = (click) => {
+												fetch(`https://${config.api.host}${config.api.prefix}/resources/${category}/${resource}/${pos.id}`, {
+													method: 'DELETE'
+												})
+												.then(response => response.json())
+												.then((data) => {
+													sprites.forEach((sprite, index) => {
+														if(sprite instanceof MiniZoom)
+															sprites.splice(index, 1)
+													})
+													load_resources() // TODO: A bit inefficient, we should only reload the affected resource
+												})
+											}
+											this.sprites.push(node)
 										}
 									})
 								})
@@ -490,8 +528,8 @@
 						load_resources()
 					} else {
 						sprites.forEach((sprite) => {
-							if(typeof sprite.on_click === 'function') {
-								sprite.on_click(click)
+							if(typeof sprite._on_click === 'function') {
+								sprite._on_click(click)
 							}
 						})
 					}
