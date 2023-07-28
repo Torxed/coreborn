@@ -133,8 +133,6 @@
 					//console.log(data)
 					resources = data
 					debug = []
-					current_add = null
-					current_category = null
 					load_filters()
 					render()
 				})
@@ -351,6 +349,14 @@
 						}, 1)
 					}
 				})
+
+				window.addEventListener('keyup', (event) => {
+					if(current_add && event.keyCode == 27) {
+						current_add = null
+						current_category = null
+						render()
+					}
+				}, false)
 
 				load_config()
 				.then(() => {
