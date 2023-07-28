@@ -132,6 +132,9 @@
 				.then((data) => {
 					//console.log(data)
 					resources = data
+					debug = []
+					current_add = null
+					current_category = null
 					load_filters()
 					render()
 				})
@@ -315,9 +318,12 @@
 							},
 							body: JSON.stringify({"x": normalized_X, "y": normalized_Y})
 						})
+						.then(response => response.json())
+						.then((data) => {
+							load_resources()
+						})
 						debug.push([normalized_X, normalized_Y])
 						// console.log(JSON.stringify(debug))
-						load_resources()
 					}
 				})
 
