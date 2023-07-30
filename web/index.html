@@ -35,7 +35,18 @@
 				min-width: 15rem;
 			}
 			.menu-entry {
-
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+			.filter-icon {
+				background-position: center;
+				background-size: contain;
+			}
+			.steam-icon {
+				background-image: url('/steam.svg');
+				width: 64px;
+				height: 64px;
 			}
 			.filter-checkbox {
 				padding-left: 0.5rem;
@@ -54,6 +65,9 @@
 				font-weight: bold;
 				padding: 1rem;
 				cursor: pointer;
+			}
+			.filter-add-new-dot:hover {
+				background-color: #6BA940;
 			}
 			.container {
 				position: relative;
@@ -78,6 +92,15 @@
 			}
 			input[type=checkbox] {
 				cursor: pointer;
+			}
+			.small-font {
+				font-size: 1.2rem;
+			}
+			.login-div {
+				cursor: pointer;
+			}
+			.login-div:hover {
+				background-color: #424242;
 			}
 		</style>
 		<script type="text/javascript" charset="utf-8">
@@ -613,6 +636,34 @@
 			function load_filters() {
 				let menu = document.querySelector('.menu');
 				menu.innerHTML = '';
+
+				let login_div = document.createElement('div')
+				login_div.classList = 'menu-entry row login-div'
+
+				let login_icon = document.createElement('div')
+				login_icon.classList = 'filter-icon steam-icon'
+				
+				let login_label = document.createElement('div')
+				login_label.classList = 'filter-label small-font'
+				login_label.innerText = 'Steam authentication'
+
+				login_div.appendChild(login_icon)
+				login_div.appendChild(login_label)
+				menu.appendChild(login_div)
+
+				login_div.addEventListener('click', () => {
+					const params = new URLSearchParams({
+						'openid.ns': 'http://specs.openid.net/auth/2.0',
+						'openid.mode': 'checkid_setup',
+						'openid.return_to': 'http://beta.coreborn.app/auth',
+						'openid.realm': 'https://coreborn.app',
+						'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
+						'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
+					});
+					const auth_query = params.toString();
+					const steam_open_id_connect_url = `https://steamcommunity.com/openid/login`
+					window.open(`${steam_open_id_connect_url}?${auth_query}`, '_blank').focus()
+				})
 
 				Object.keys(resources).forEach((category) => {
 					let category_div = document.createElement('div')
