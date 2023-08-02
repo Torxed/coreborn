@@ -1,38 +1,41 @@
 {
 	"api" : {
-		"host" : "beta.coreborn.app",
+		"host" : "staging.coreborn.app",
 		"prefix" : "/api"
+	},
+	"steam" : {
+		"returnDomain" : "staging.coreborn.app"
 	},
 	"resources" : {
 		"gold" : {
-			"visible" : true
+			"visible" : false
 		},
 		"ambrosite" : {
-			"visible" : true
+			"visible" : false
 		},
 		"royalite" : {
-			"visible" : true
+			"visible" : false
 		},
 		"sulfur" : {
-			"visible" : true
+			"visible" : false
 		},
 		"iron" : {
-			"visible" : true
+			"visible" : false
 		},
 		"coal" : {
-			"visible" : true
+			"visible" : false
 		},
 		"heartwood" : {
-			"visible" : true
+			"visible" : false
 		},
 		"blushbell" : {
-			"visible" : true
+			"visible" : false
 		},
 		"ellyonwood" : {
-			"visible" : true
+			"visible" : false
 		},
 		"dornwood" : {
-			"visible" : true
+			"visible" : false
 		}
 	}
 }
